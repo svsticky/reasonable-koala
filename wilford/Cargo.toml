@@ -1,0 +1,26 @@
+[package]
+name = "wilford"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+actix-cors = "0.6.5"
+actix-multiresponse = "0.4.2"
+actix-route-config = "0.1.1"
+actix-web = "4.4.1"
+base64 = "0.21.5"
+color-eyre = "0.6.2"
+database = { version = "0.1.0", path = "../database" }
+envy = "0.4.2"
+espocrm-rs = "0.4.1"
+noiseless-tracing-actix-web = "0.1.0"
+reqwest = { version = "0.11.23", default-features = false, features = ["json", "rustls-tls"] }
+serde = { version = "1.0.193", features = ["derive"] }
+serde_json = "1.0.108"
+serde_qs = "0.12.0"
+tap = "1.0.1"
+thiserror = "1.0.51"
+tokio = { version = "1.35.1", features = ["full"] }
+tracing = "0.1.40"
+tracing-actix-web = "0.7.9"
+tracing-subscriber = { version = "0.3.18", features = ["env-filter"] }
