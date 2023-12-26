@@ -1,0 +1,64 @@
+version: '3.2'
+services:
+  mariadb-wilford:
+    image: mariadb
+    environment:
+      - "MARIADB_ROOT_PASSWORD=123"
+      - "MARIADB_USER=wilford"
+      - "MARIADB_PASSWORD=wilford"
+      - "MARIADB_DATABASE=wilford"
+
+  mariadb-espocrm:
+    image: mariadb
+    environment:
+      - "MARIADB_ROOT_PASSWORD=123"
+      - "MARIADB_USER=espocrm"
+      - "MARIADB_PASSWORD=espocrm"
+      - "MARIADB_DATABASE=espocrm"
+
+  wilford:
+    build:
+      context: server
+      dockerfile: Dockerfile
+    ports:
+      - "2521:8080"
+    environment:
+      - "CONFIG_PATH=/config.json"
+    volumes:
+      - "./config.json:/config.json"
+    depends_on:
+      - "mariadb-wilford"
+
+  ui:
+    build:
+      context: ui
+      dockerfile: Dockerfile
+    ports:
+      - "2522:80"
+
+  docs:
+    build:
+      context: docs
+      dockerfile: Dockerfile
+    ports:
+      - "2523:80"
+  
+  espocrm:
+    image: espocrm/espocrm
+    ports:
+      - "2524:80"
+    environment:
+      - "ESPOCRM_DATABASE_HOST=mariadb-espocrm"
+      - "ESPOCRM_DATABASE_USER=espocrm"
+      - "ESPOCRM_DATABASE_PASSWORD=espocrm"
+      - "ESPOCRM_DATABASE_NAME=espocrm"
+      - "ESPOCRM_ADMIN_USERNAME=admin"
+      - "ESPOCRM_ADMIN_PASSWORD=admin"
+      - "ESPOCRM_SITE_URL=http://localhost:2524"
+    volumes:
+      - "espo-data:/var/www/html"
+    depends_on:
+      - mariadb-espocrm
+
+volumes:
+  espo-data: {}

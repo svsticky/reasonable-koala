@@ -34,10 +34,11 @@ If the previous step went successfull, your client can now exchange the authoriz
 
 Your client should send a `POST` request to `/api/oauth/token` with the following query parameters (`application/x-www-form-urlencoded`):
 ```
-grant_type: code
+grant_type: authorization_code
 code: <Your authorization grant>
 redirect_uri: <Your client's redirect URI>
 client_id: <Your client's ID>
+client_secret: <Your client's secret>
 ```
 
 #### Success

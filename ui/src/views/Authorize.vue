@@ -12,7 +12,7 @@
             <div v-else>
                 <v-card-text>
                     Grant '{{ clientName }}' access to your account?
-                    <div v-if="scopes.length > 0">
+                    <div v-if="scopes && scopes.length > 0">
                         Scopes:
                         <v-list>
                             <v-list-item v-for="scope in scopes">
@@ -41,7 +41,7 @@
 
 <script setup lang="ts">
 
-import {ref, onMounted} from "vue";
+import {ref, onMounted, Ref} from "vue";
 import {server} from "@/main";
 import {useRoute, useRouter} from "vue-router";
 
@@ -49,8 +49,8 @@ const route = useRoute();
 const router = useRouter();
 
 let loading = ref(true);
-let clientName = ref(null);
-let scopes = ref([]);
+let clientName: Ref<string | null> = ref(null);
+let scopes: Ref<string[] | null> = ref([]);
 
 onMounted(async () => {
     await router.isReady();

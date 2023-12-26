@@ -2,7 +2,7 @@
     <v-container>
         <div v-if="banner != null">
             <v-banner :text="banner">
-                <template v-slot:actions="{ item }">
+                <template v-slot:actions>
                     Empty
                 </template>
             </v-banner>
@@ -51,18 +51,18 @@
 </template>
 
 <script setup lang="ts">
-import {reactive, ref} from 'vue';
+import {reactive, Ref, ref} from 'vue';
 import {useRoute, useRouter} from "vue-router";
 import {server} from "@/main";
 
 const route = useRoute();
 const router = useRouter();
 
-const requiredRules = [
+const requiredRules = <((v: string | undefined) => string)[]> [
     v => !!v || "Required"
 ];
 
-let banner = ref(null);
+let banner: Ref<string | null> = ref(null);
 
 let enterUsernamePassword = ref(true);
 let enterTotp = ref(false);
@@ -70,9 +70,9 @@ let enterTotp = ref(false);
 const usernamePasswordValid = ref(true);
 const totpValid = ref(true);
 
-const username = ref(null);
-const password = ref(null);
-const totpCode = ref(null);
+const username: Ref<string | null> = ref(null);
+const password: Ref<string | null> = ref(null);
+const totpCode: Ref<string | null> = ref(null);
 
 const loading = ref(false);
 
@@ -110,12 +110,13 @@ async function login() {
             }
 
             if(v.status) {
-                router.push(`/authorize?authorization=${route.query['authorization']}`);
+                await router.push(`/authorize?authorization=${route.query['authorization']}`);
+                return;
             }
 
             break;
         default:
-            banner = r.statusText;
+            banner.value = r.statusText;
             break;
     }
 }

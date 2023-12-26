@@ -21,6 +21,10 @@ not imply any particular implementation characteristics (e.g.,
 whether the application executes on a server, a desktop, or other
 devices).
 
+This is your application.
+
 #### Authorization server
 The server issuing access tokens to the client after successfully
 authenticating the resource owner and obtaining authorization.
+
+`Wilford` fulfils this role
