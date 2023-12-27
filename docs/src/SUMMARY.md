@@ -11,3 +11,8 @@
         - [Internal](api/clients/internal.md)
     - [User](api/user/index.md)
         - [Info](api/user/info.md)
+        - [List](api/user/list.md)
+        - [Permitted Scopes](api/user/permitted_scopes/index.md)
+            - [Add](api/user/permitted_scopes/add.md)
+            - [List](api/user/permitted_scopes/list.md)
+            - [Remove](api/user/permitted_scopes/remove.md)

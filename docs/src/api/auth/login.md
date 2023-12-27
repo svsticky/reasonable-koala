@@ -23,3 +23,7 @@ Log in with EspoCRM login credentials to authenticate for a pending authorizatio
 
 A login is successful if `status == true`. The request should be retried with a `totp_code` if `totp_required == true`.
 If `!status && !totp_required`, the credentials were likely invalid.
+
+### Failure
+The server will respond with a `403 Forbidden` if the authorization requests scopes that aren't permitted.
+An authorization may always request the OIDC scopes: `openid profile email`.

@@ -2,7 +2,7 @@ use base64::Engine;
 use espocrm_rs::{EspoApiClient, Method};
 use reqwest::{Result, StatusCode};
 use serde::Deserialize;
-use tracing::{info, warn};
+use tracing::warn;
 
 #[derive(Debug, Clone, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -68,10 +68,8 @@ impl EspoUser {
 
                 let payload: Response = result.json().await?;
                 if payload.user.is_active {
-                    info!("A");
                     Ok(LoginStatus::Ok(payload.user.id))
                 } else {
-                    info!("B");
                     Ok(LoginStatus::Err)
                 }
             }
@@ -83,16 +81,13 @@ impl EspoUser {
 
                 let payload: Response = result.json().await?;
                 if payload.message.eq("enterTotpCode") {
-                    info!("C");
                     Ok(LoginStatus::SecondStepRequired)
                 } else {
-                    info!("D");
                     Ok(LoginStatus::Err)
                 }
             }
             _ => {
                 warn!("Espo status: {:?}", result.status());
-                info!("E");
                 Ok(LoginStatus::Err)
             }
         }

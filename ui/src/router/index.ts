@@ -25,9 +25,20 @@ const routes = [
         path: 'login-ok',
         name: 'Login OK',
         component: () => import('@/views/LoginOk.vue')
-      }
+      },
     ],
   },
+  {
+    path: '/manager',
+    component: () => import('@/layouts/default/Default.vue'),
+    children: [
+      {
+        path: 'users',
+        name: 'Users',
+        component: () => import("@/views/manager/Users.vue")
+      }
+    ]
+  }
 ]
 
 const router = createRouter({

@@ -70,7 +70,7 @@ pub async fn token(
                 return Err(OAuth2ErrorKind::InvalidGrant);
             }
 
-            if time::OffsetDateTime::now_utc().unix_timestamp() > authorization.expires_at {
+            if OffsetDateTime::now_utc().unix_timestamp() > authorization.expires_at {
                 return Err(OAuth2ErrorKind::InvalidGrant);
             }
 

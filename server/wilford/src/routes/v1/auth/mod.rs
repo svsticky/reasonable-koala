@@ -5,6 +5,7 @@ use actix_web::web::ServiceConfig;
 mod authorization_info;
 mod authorize;
 mod login;
+mod token_info;
 
 pub struct Router;
 
@@ -17,7 +18,8 @@ impl Routable for Router {
                 .route(
                     "/authorization-info",
                     web::get().to(authorization_info::authorization_info),
-                ),
+                )
+                .route("/token-info", web::get().to(token_info::token_info)),
         );
     }
 }

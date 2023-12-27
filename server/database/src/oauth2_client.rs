@@ -1,6 +1,7 @@
 use crate::driver::Database;
 use crate::generate_string;
 use sqlx::{FromRow, Result};
+use std::collections::HashSet;
 use thiserror::Error;
 
 #[derive(Debug, Clone, FromRow)]
@@ -83,7 +84,7 @@ pub struct OAuth2AuthorizationCode {
     pub espo_user_id: String,
 }
 
-#[derive(FromRow)]
+#[derive(Clone, Debug, FromRow)]
 pub struct AccessToken {
     pub token: String,
     pub client_id: String,
@@ -345,6 +346,35 @@ impl OAuth2Client {
             expires_at,
             espo_user_id: refresh_token.espo_user_id.clone(),
         })
+    }
+}
+
+impl AccessToken {
+    pub async fn get_by_id(
+        driver: &Database,
+        token: &str,
+        client: &OAuth2Client,
+    ) -> Result<Option<Self>> {
+        Ok(
+            sqlx::query_as("SELECT * FROM oauth2_access_tokens WHERE token = ? AND client_id = ?")
+                .bind(token)
+                .bind(&client.client_id)
+                .fetch_optional(&**driver)
+                .await?
+                // Only valid if the token hasn't expired yet
+                .map(|token: Self| {
+                    let valid = time::OffsetDateTime::now_utc().unix_timestamp() < token.expires_at;
+                    valid.then(|| token)
+                })
+                .unwrap_or(None), // No token found for the client --> not valid
+        )
+    }
+
+    pub fn scopes(&self) -> HashSet<String> {
+        self.scopes
+            .as_ref()
+            .map(|f| f.split(" ").map(|c| c.to_string()).collect::<HashSet<_>>())
+            .unwrap_or_default()
     }
 }
 

@@ -78,7 +78,7 @@ async function loadAuthorizationInfo() {
             clientName.value = json.client_name;
             scopes.value = json.scopes?.split(" ") ?? [];
             loading.value = false;
-            console.log(loading.value)
+
             break;
         default:
             break;

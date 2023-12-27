@@ -26,7 +26,8 @@ export class ClientInfo {
         return new ClientInfo(j.name, j.client_id, j.client_secret, j.redirect_uri);
     }
 
-    getAuthorizationRedirect(): string {
-        return `${server}/api/oauth/authorize?client_id=${this.clientId}&response_type=code&redirect_uri=${this.redirectUri}`
+    getAuthorizationRedirect(manageScopes: boolean = false): string {
+        const scopesParam = manageScopes ? `&scope=wilford.manage` : "";
+        return `${server}/api/oauth/authorize?client_id=${this.clientId}&response_type=code${scopesParam}&redirect_uri=${this.redirectUri}`
     }
 }

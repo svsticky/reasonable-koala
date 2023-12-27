@@ -6,6 +6,8 @@ mod auth;
 mod clients;
 mod user;
 
+pub const MANAGE_SCOPE: &str = "wilford.manage";
+
 pub struct Router;
 
 impl Routable for Router {

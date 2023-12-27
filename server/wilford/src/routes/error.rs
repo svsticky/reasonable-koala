@@ -14,8 +14,8 @@ pub enum WebError {
     Unauthorized,
     #[error("Invalid internal state")]
     InvalidInternalState,
-    // #[error("Forbidden")]
-    // Forbidden,
+    #[error("Forbidden")]
+    Forbidden,
     #[error("{0}")]
     Database(#[from] database::driver::Error),
     #[error("EspoCRM error: {0}")]
@@ -28,7 +28,7 @@ impl ResponseError for WebError {
             Self::NotFound => StatusCode::NOT_FOUND,
             Self::BadRequest => StatusCode::BAD_REQUEST,
             Self::Unauthorized => StatusCode::UNAUTHORIZED,
-            // Self::Forbidden => StatusCode::FORBIDDEN,
+            Self::Forbidden => StatusCode::FORBIDDEN,
             Self::InvalidInternalState => StatusCode::INTERNAL_SERVER_ERROR,
             Self::Database(_) => StatusCode::INTERNAL_SERVER_ERROR,
             Self::Espo(_) => StatusCode::BAD_GATEWAY,

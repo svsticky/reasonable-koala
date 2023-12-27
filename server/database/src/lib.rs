@@ -1,8 +1,8 @@
 use rand::Rng;
 
-pub mod access_token;
 pub mod driver;
 pub mod oauth2_client;
+pub mod user;
 
 fn generate_string(len: usize) -> String {
     rand::thread_rng()

@@ -3,8 +3,8 @@ use crate::routes::appdata::{WDatabase, WEspo};
 use crate::routes::error::{WebError, WebResult};
 use actix_web::dev::Payload;
 use actix_web::{FromRequest, HttpRequest};
-use database::access_token::AccessToken;
-use database::oauth2_client::OAuth2Client;
+use database::oauth2_client::{AccessToken, OAuth2Client};
+use std::collections::HashSet;
 use std::future::Future;
 use std::pin::Pin;
 use tap::TapOptional;
@@ -15,6 +15,7 @@ pub struct Auth {
     pub espo_user_id: String,
     pub name: String,
     pub is_admin: bool,
+    token: AccessToken,
 }
 
 impl FromRequest for Auth {
@@ -40,8 +41,8 @@ impl FromRequest for Auth {
                 .find(|f| f.is_internal)
                 .tap_none(|| warn!("No OAuth2 client exists matching `is_internal == true`"))
                 .ok_or(WebError::InvalidInternalState)?;
-            let token_info = match AccessToken::get_if_valid_for(&database, &token, &client).await?
-            {
+
+            let token_info = match AccessToken::get_by_id(&database, &token, &client).await? {
                 Some(v) => v,
                 None => return Err(WebError::Unauthorized),
             };
@@ -54,8 +55,20 @@ impl FromRequest for Auth {
                 espo_user_id: espo_user.id,
                 name: espo_user.name,
                 is_admin: espo_user.user_type.eq("admin"),
+                token: token_info,
             })
         })
+    }
+}
+
+impl Auth {
+    #[must_use]
+    pub fn has_scope(&self, scope: &str) -> bool {
+        self.token.scopes().contains(scope)
+    }
+
+    pub fn scopes(&self) -> HashSet<String> {
+        self.token.scopes()
     }
 }
 

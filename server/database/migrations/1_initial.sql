@@ -41,3 +41,16 @@ CREATE TABLE oauth2_authorization_codes (
     espo_user_id TEXT NOT NULL,
     PRIMARY KEY (code)
 );
+
+CREATE TABLE users (
+    espo_user_id VARCHAR(64) NOT NULL,
+    name TEXT NOT NULL,
+    is_espo_admin BOOL,
+    PRIMARY KEY (espo_user_id)
+);
+
+CREATE TABLE user_permitted_scopes (
+    espo_user_id VARCHAR(64) NOT NULL,
+    scope VARCHAR(64) NOT NULL,
+    PRIMARY KEY (espo_user_id, scope)
+);

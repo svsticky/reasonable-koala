@@ -9,6 +9,7 @@ Get information about the authorized user.
 ```jsonc
 {
     "name": "<name of the user>",
-    "is_admin": false // Whether the user is an EspoCRM admin
+    "is_admin": false, // Whether the user is an EspoCRM admin
+    "espo_user_id": "<espo user id>"
 }
 ```
