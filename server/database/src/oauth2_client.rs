@@ -3,6 +3,7 @@ use crate::generate_string;
 use sqlx::{FromRow, Result};
 use std::collections::HashSet;
 use thiserror::Error;
+use time::OffsetDateTime;
 
 #[derive(Debug, Clone, FromRow)]
 pub struct OAuth2Client {
@@ -89,6 +90,7 @@ pub struct AccessToken {
     pub token: String,
     pub client_id: String,
     pub expires_at: i64,
+    pub issued_at: i64,
     pub espo_user_id: String,
     pub scopes: Option<String>,
 }
@@ -275,14 +277,16 @@ impl OAuth2Client {
         let atoken = Self::generate_access_token();
         let rtoken = Self::generate_refresh_token();
         let expires_at = Self::generate_access_token_expiry();
+        let issued_at = OffsetDateTime::now_utc().unix_timestamp();
 
         let mut tx = driver.begin().await?;
 
         // Access token
-        sqlx::query("INSERT INTO oauth2_access_tokens (token, client_id, expires_at, espo_user_id, scopes) VALUES (?, ?, ?, ?, ?)")
+        sqlx::query("INSERT INTO oauth2_access_tokens (token, client_id, expires_at, issued_at, espo_user_id, scopes) VALUES (?, ?, ?, ?, ?, ?)")
             .bind(&atoken)
             .bind(&self.client_id)
             .bind(expires_at)
+            .bind(issued_at)
             .bind(&authorization.espo_user_id)
             .bind(&authorization.scopes)
             .execute(&mut *tx)
@@ -310,6 +314,7 @@ impl OAuth2Client {
                 token: atoken,
                 client_id: self.client_id.clone(),
                 expires_at,
+                issued_at,
                 espo_user_id: authorization.espo_user_id.clone(),
                 scopes: authorization.scopes.clone(),
             },
@@ -329,8 +334,9 @@ impl OAuth2Client {
     ) -> Result<AccessToken> {
         let atoken = Self::generate_access_token();
         let expires_at = Self::generate_access_token_expiry();
+        let issued_at = OffsetDateTime::now_utc().unix_timestamp();
 
-        sqlx::query("INSERT INTO oauth2_access_tokens (token, client_id, expires_at, espo_user_id, scopes) VALUES (?, ?, ?, ?, ?)")
+        sqlx::query("INSERT INTO oauth2_access_tokens (token, client_id, expires_at, issued_at, espo_user_id, scopes) VALUES (?, ?, ?, ?, ?, ?)")
             .bind(&atoken)
             .bind(&self.client_id)
             .bind(expires_at)
@@ -343,6 +349,7 @@ impl OAuth2Client {
             token: atoken,
             client_id: self.client_id.clone(),
             scopes: refresh_token.scopes.clone(),
+            issued_at,
             expires_at,
             espo_user_id: refresh_token.espo_user_id.clone(),
         })
@@ -350,7 +357,16 @@ impl OAuth2Client {
 }
 
 impl AccessToken {
-    pub async fn get_by_id(
+    pub async fn get_by_token(driver: &Database, token: &str) -> Result<Option<Self>> {
+        Ok(
+            sqlx::query_as("SELECT * FROM oauth2_access_tokens WHERE token = ?")
+                .bind(token)
+                .fetch_optional(&**driver)
+                .await?,
+        )
+    }
+
+    pub async fn get_with_validation(
         driver: &Database,
         token: &str,
         client: &OAuth2Client,

@@ -4,10 +4,10 @@
         max-width="1200"
         :persistent="true">
         <v-card>
-            <v-card-title v-if="user">Add scope to {{ user.name }}</v-card-title>
+            <v-card-title>Add CAT token</v-card-title>
             <v-card-text>
                 <v-text-field
-                    v-model="scopeName"
+                    v-model="name"
                     limit="64"
                 ></v-text-field>
             </v-card-text>
@@ -17,8 +17,8 @@
                 </v-btn>
                 <v-spacer></v-spacer>
                 <v-btn
-                    :disabled="!scopeName || scopeName.length == 0"
-                    @click="addScope">
+                    :disabled="!name || name.length == 0"
+                    @click="addToken">
                     Add
                 </v-btn>
             </v-card-actions>
@@ -27,23 +27,21 @@
 </template>
 
 <script setup lang="ts">
-import {User} from "@/components/user";
 import {Ref, ref} from "vue";
+import {CatToken} from "@/components/cat";
 
-const props = defineProps({
+const _ = defineProps({
     enabled: Boolean,
-    user: User,
 })
 
 const emit = defineEmits<{
     close: [ok: boolean]
 }>();
 
-let scopeName: Ref<string | null> = ref(null);
+let name: Ref<string | null> = ref(null);
 
-async function addScope() {
-    console.log('Fo');
-    await props.user!.addPermittedScope(scopeName.value!)
+async function addToken() {
+    await CatToken.create(name.value!);
     emit('close', true);
 }
 

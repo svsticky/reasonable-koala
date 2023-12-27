@@ -3,6 +3,7 @@ use actix_web::web;
 use actix_web::web::ServiceConfig;
 
 mod auth;
+mod cat;
 mod clients;
 mod user;
 
@@ -16,7 +17,8 @@ impl Routable for Router {
             web::scope("/v1")
                 .configure(clients::Router::configure)
                 .configure(auth::Router::configure)
-                .configure(user::Router::configure),
+                .configure(user::Router::configure)
+                .configure(cat::Router::configure),
         );
     }
 }

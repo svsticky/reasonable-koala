@@ -3,6 +3,7 @@ use crate::routes::appdata::{WDatabase, WEspo};
 use crate::routes::error::{WebError, WebResult};
 use actix_web::dev::Payload;
 use actix_web::{FromRequest, HttpRequest};
+use database::constant_access_tokens::ConstantAccessToken;
 use database::oauth2_client::{AccessToken, OAuth2Client};
 use std::collections::HashSet;
 use std::future::Future;
@@ -42,10 +43,11 @@ impl FromRequest for Auth {
                 .tap_none(|| warn!("No OAuth2 client exists matching `is_internal == true`"))
                 .ok_or(WebError::InvalidInternalState)?;
 
-            let token_info = match AccessToken::get_by_id(&database, &token, &client).await? {
-                Some(v) => v,
-                None => return Err(WebError::Unauthorized),
-            };
+            let token_info =
+                match AccessToken::get_with_validation(&database, &token, &client).await? {
+                    Some(v) => v,
+                    None => return Err(WebError::Unauthorized),
+                };
 
             let espo_user = EspoUser::get_by_id(&espo_client, &token_info.espo_user_id)
                 .await
@@ -69,6 +71,38 @@ impl Auth {
 
     pub fn scopes(&self) -> HashSet<String> {
         self.token.scopes()
+    }
+}
+
+/// Authentication using a constant token.
+/// These tokens are created manually.
+pub struct ConstantAccessTokenAuth {
+    pub name: String,
+    pub token: String,
+}
+
+impl FromRequest for ConstantAccessTokenAuth {
+    type Error = WebError;
+    type Future = Pin<Box<dyn Future<Output = WebResult<Self>>>>;
+
+    fn from_request(req: &HttpRequest, _: &mut Payload) -> Self::Future {
+        let req = req.clone();
+        let database = req
+            .app_data::<WDatabase>()
+            .expect("Getting AppData for type WDatabase")
+            .clone();
+
+        Box::pin(async move {
+            let token = get_authorization_token(&req)?;
+            let cat = ConstantAccessToken::get_by_token(&database, &token)
+                .await?
+                .ok_or(WebError::Unauthorized)?;
+
+            Ok(Self {
+                name: cat.name,
+                token: cat.token,
+            })
+        })
     }
 }
 

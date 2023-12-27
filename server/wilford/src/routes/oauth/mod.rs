@@ -7,6 +7,7 @@ use serde::Serialize;
 use std::fmt::Display;
 
 mod authorize;
+mod introspect;
 mod token;
 
 pub struct Router;
@@ -16,7 +17,8 @@ impl Routable for Router {
         config.service(
             web::scope("/oauth")
                 .route("/authorize", web::get().to(authorize::authorize))
-                .route("/token", web::post().to(token::token)),
+                .route("/token", web::post().to(token::token))
+                .route("/introspect", web::get().to(introspect::introspect)),
         );
     }
 }

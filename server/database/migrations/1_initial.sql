@@ -20,6 +20,7 @@ CREATE TABLE oauth2_access_tokens (
     token VARCHAR(32) NOT NULL,
     client_id VARCHAR(32) NOT NULL,
     expires_at BIGINT NOT NULL,
+    issued_at BIGINT NOT NULL,
     espo_user_id VARCHAR(64) NOT NULL,
     scopes TEXT DEFAULT NULL,
     PRIMARY KEY (token)
@@ -54,3 +55,10 @@ CREATE TABLE user_permitted_scopes (
     scope VARCHAR(64) NOT NULL,
     PRIMARY KEY (espo_user_id, scope)
 );
+
+CREATE TABLE constant_access_tokens (
+    name VARCHAR(64),
+    token VARCHAR(32),
+    PRIMARY KEY (token),
+    UNIQUE (name)
+)

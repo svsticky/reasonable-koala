@@ -1,5 +1,5 @@
 // Composables
-import {createRouter, createWebHashHistory, createWebHistory} from 'vue-router'
+import {createRouter, createWebHistory} from 'vue-router'
 
 const routes = [
   {
@@ -35,7 +35,12 @@ const routes = [
       {
         path: 'users',
         name: 'Users',
-        component: () => import("@/views/manager/Users.vue")
+        component: () => import("@/views/manager/user/Users.vue")
+      },
+      {
+        path: 'cat',
+        name: 'CAT Tokens',
+        component: () => import('@/views/manager/cat/ConstantAccessTokens.vue')
       }
     ]
   }

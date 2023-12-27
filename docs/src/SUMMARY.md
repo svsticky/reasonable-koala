@@ -16,3 +16,7 @@
             - [Add](api/user/permitted_scopes/add.md)
             - [List](api/user/permitted_scopes/list.md)
             - [Remove](api/user/permitted_scopes/remove.md)
+    - [Constant Access Tokens](api/cat/index.md)
+        - [Add](api/cat/add.md)
+        - [List](api/cat/list.md)
+        - [Remove](api/cat/remove.md)

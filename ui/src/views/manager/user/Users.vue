@@ -55,7 +55,7 @@
 import {onMounted, Ref, ref} from "vue";
 import {Token} from "@/components/token";
 import {User} from "@/components/user";
-import ManagePermittedScopesDialog from "@/views/manager/ManagePermittedScopesDialog.vue";
+import ManagePermittedScopesDialog from "@/views/manager/user/ManagePermittedScopesDialog.vue";
 import {ClientInfo} from "@/components/clients";
 
 let isManager = ref(false);

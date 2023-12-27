@@ -33,6 +33,14 @@
                                         Manage users
                                     </v-btn>
                                 </v-list-item>
+                                <v-list-item>
+                                    <v-btn
+                                        flat
+                                        prepend-icon="mdi-link"
+                                        to="/manager/cat">
+                                        Manage CAT Tokens
+                                    </v-btn>
+                                </v-list-item>
                             </v-list>
                         </v-card>
                     </div>

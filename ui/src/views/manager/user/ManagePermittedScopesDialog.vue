@@ -59,7 +59,7 @@
 
 import {User} from "@/components/user";
 import {onMounted, ref, Ref, watch} from "vue";
-import AddPermittedScopeDialog from "@/views/manager/AddPermittedScopeDialog.vue";
+import AddPermittedScopeDialog from "@/views/manager/user/AddPermittedScopeDialog.vue";
 
 const props = defineProps({
     enabled: Boolean,
