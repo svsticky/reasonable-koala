@@ -41,6 +41,11 @@ const routes = [
         path: 'cat',
         name: 'CAT Tokens',
         component: () => import('@/views/manager/cat/ConstantAccessTokens.vue')
+      },
+      {
+        path: 'clients',
+        name: 'OAuth2 Clients',
+        component: () => import('@/views/manager/client/Clients.vue')
       }
     ]
   }

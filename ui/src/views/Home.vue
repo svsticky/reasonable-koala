@@ -25,20 +25,12 @@
                         <v-card>
                             <v-card-title>Managment</v-card-title>
                             <v-list>
-                                <v-list-item>
+                                <v-list-item v-for="item in adminLinks" :key="item.to">
                                     <v-btn
-                                        flat
+                                        :flat="true"
                                         prepend-icon="mdi-link"
-                                        to="/manager/users">
-                                        Manage users
-                                    </v-btn>
-                                </v-list-item>
-                                <v-list-item>
-                                    <v-btn
-                                        flat
-                                        prepend-icon="mdi-link"
-                                        to="/manager/cat">
-                                        Manage CAT Tokens
+                                        :to="item.to">
+                                        {{ item.name }}
                                     </v-btn>
                                 </v-list-item>
                             </v-list>
@@ -63,6 +55,21 @@ let internalClient: Ref<ClientInfo | null> = ref(null);
 let isAuthenticated = ref(false);
 let userName: Ref<string | null> = ref(null);
 let wilfordManageScope = ref(false);
+
+const adminLinks: { name: string, to: string}[] = [
+    {
+        name: "Manage users",
+        to: "/manager/users"
+    },
+    {
+        name: "Manage CAT tokens",
+        to: "/manager/cat"
+    },
+    {
+        name: "Manage OAuth2 clients",
+        to: "/manager/clients"
+    }
+];
 
 onMounted(async () => {
     internalClient.value = await ClientInfo.getInternal();

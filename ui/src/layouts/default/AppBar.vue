@@ -7,8 +7,10 @@
 </template>
 
 <style scoped>
+@import url('https://fonts.googleapis.com/css2?family=Tinos&display=swap');
+
 .font-wilford {
-    font-family: "Nimbus Roman";
+    font-family: 'Tinos', serif;
 }
 </style>
 

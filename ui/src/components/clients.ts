@@ -30,4 +30,46 @@ export class ClientInfo {
         const scopesParam = manageScopes ? `&scope=wilford.manage` : "";
         return `${server}/api/oauth/authorize?client_id=${this.clientId}&response_type=code${scopesParam}&redirect_uri=${this.redirectUri}`
     }
+
+    static async new(name: string, redirectUri: string) {
+        await fetch(`${server}/api/v1/clients/add`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${window.localStorage.getItem('access_token')}`
+            },
+            body: JSON.stringify({
+                name: name,
+                redirect_uri: redirectUri,
+            })
+        })
+    }
+
+    static async list(): Promise<ClientInfo[]> {
+        const r = await fetch(`${server}/api/v1/clients/list`, {
+            headers: {
+                'Authorization': `Bearer ${window.localStorage.getItem('access_token')}`
+            }
+        })
+
+        interface Response {
+            clients: _ClientInfo[]
+        }
+
+        const j: Response = await r.json();
+        return j.clients.map(c => new ClientInfo(c.name, c.client_id, c.client_secret, c.redirect_uri));
+    }
+
+    async remove() {
+        await fetch(`${server}/api/v1/clients/remove`, {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${window.localStorage.getItem('access_token')}`
+            },
+            body: JSON.stringify({
+                client_id: this.clientId,
+            })
+        })
+    }
 }
