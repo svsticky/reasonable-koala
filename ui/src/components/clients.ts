@@ -28,7 +28,7 @@ export class ClientInfo {
 
     getAuthorizationRedirect(manageScopes: boolean = false): string {
         const scopesParam = manageScopes ? `&scope=wilford.manage` : "";
-        return `${server}/api/oauth/authorize?client_id=${this.clientId}&response_type=code${scopesParam}&redirect_uri=${this.redirectUri}`
+        return `${server}/api/oauth/authorize?client_id=${this.clientId}&response_type=token${scopesParam}&redirect_uri=${this.redirectUri}`
     }
 
     static async new(name: string, redirectUri: string) {

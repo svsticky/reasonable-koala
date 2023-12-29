@@ -42,7 +42,7 @@ services:
       dockerfile: Dockerfile
     ports:
       - "2523:80"
-  
+
   espocrm:
     image: espocrm/espocrm
     ports:

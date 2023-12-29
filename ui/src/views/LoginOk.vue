@@ -33,7 +33,6 @@
 
 import {onMounted, Ref, ref} from "vue";
 import {useRoute, useRouter} from "vue-router";
-import {server} from "@/main";
 import {ClientInfo} from "@/components/clients";
 
 const router = useRouter();
@@ -45,29 +44,29 @@ let internalClient: Ref<ClientInfo | null> = ref(null);
 
 onMounted(async () => {
     await router.isReady();
-    await exchangeCodeForToken();
+    setAccessToken();
 })
 
-async function exchangeCodeForToken() {
-    internalClient.value = await ClientInfo.getInternal();
-    const r = await fetch(`${server}/api/oauth/token?grant_type=authorization_code&code=${route.query['code']}&redirect_uri=${internalClient!.value?.redirectUri}&client_id=${internalClient!.value?.clientId}&client_secret=${internalClient!.value.clientSecret}`, {
-        method: 'POST'
-    });
-
-    interface Response {
-        access_token?: string,
-        error?: string,
-    }
-
-    const j: Response = await r.json();
-    loading.value = false;
-
-    if(j.error) {
-        errorBanner.value = "Could not log in."
+function setAccessToken() {
+    const params = parseQuery(route.hash);
+    if(params.has('access_token')) {
+        window.localStorage.setItem('access_token', params.get('access_token')!);
     } else {
-        window.localStorage.setItem('access_token', j.access_token!);
-        await router.push('/');
+        errorBanner.value = "Could not log in."
     }
+
+    loading.value = false;
+    router.push('/');
+}
+
+function parseQuery(queryString: string): Map<string, string> {
+    let query: Map<string, string> = new Map();
+    let pairs = ((queryString[0] === '?' || queryString[0] === '#') ? queryString.substring(1) : queryString).split('&');
+    for (let i = 0; i < pairs.length; i++) {
+        let pair = pairs[i].split('=');
+        query.set(decodeURIComponent(pair[0]), decodeURIComponent(pair[1] || ''));
+    }
+    return query;
 }
 
 </script>

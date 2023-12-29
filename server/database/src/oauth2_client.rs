@@ -323,6 +323,8 @@ impl OAuth2Client {
             .execute(&mut *tx)
             .await?;
 
+        tx.commit().await?;
+
         Ok(AccessToken {
             token: atoken,
             issued_at,

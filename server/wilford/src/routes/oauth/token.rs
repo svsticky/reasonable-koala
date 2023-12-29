@@ -113,7 +113,7 @@ pub async fn token(
             Ok(web::Json(Response {
                 access_token: atoken.token,
                 token_type: "bearer".to_string(),
-                expires_in: OffsetDateTime::now_utc().unix_timestamp() - atoken.expires_at,
+                expires_in: atoken.expires_at - OffsetDateTime::now_utc().unix_timestamp(),
                 scope: atoken.scopes.unwrap_or_default(),
                 refresh_token: rtoken.token,
             }))

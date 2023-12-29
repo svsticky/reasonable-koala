@@ -93,8 +93,7 @@ pub async fn authorize(
                 serde_qs::to_string(&RedirectFragment {
                     access_token: access_token.token,
                     token_type: "bearer",
-                    expires_in: OffsetDateTime::now_utc().unix_timestamp()
-                        - access_token.expires_at,
+                    expires_in: access_token.expires_at - OffsetDateTime::now_utc().unix_timestamp(),
                     state,
                 })
                 .expect("Serializing query string"),
