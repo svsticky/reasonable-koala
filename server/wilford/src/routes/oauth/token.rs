@@ -9,7 +9,7 @@ use tap::TapFallible;
 use tracing::warn;
 
 #[derive(Deserialize)]
-pub struct Query {
+pub struct Form {
     grant_type: GrantType,
     code: Option<String>,
     redirect_uri: String,
@@ -37,25 +37,25 @@ pub struct Response {
 
 pub async fn token(
     database: WDatabase,
-    query: web::Query<Query>,
+    form: web::Form<Form>,
 ) -> Result<web::Json<Response>, OAuth2ErrorKind> {
-    let client = OAuth2Client::get_by_client_id(&database, &query.client_id)
+    let client = OAuth2Client::get_by_client_id(&database, &form.client_id)
         .await
         .tap_err(|e| warn!("{e}"))
         .map_err(|_| OAuth2ErrorKind::ServerError)?
         .ok_or(OAuth2ErrorKind::UnauthorizedClient)?;
 
-    if client.client_secret.ne(&query.client_secret) {
+    if client.client_secret.ne(&form.client_secret) {
         return Err(OAuth2ErrorKind::UnauthorizedClient);
     }
 
-    if client.redirect_uri.ne(&query.redirect_uri) {
+    if client.redirect_uri.ne(&form.redirect_uri) {
         return Err(OAuth2ErrorKind::UnauthorizedClient);
     }
 
-    match query.grant_type {
+    match form.grant_type {
         GrantType::AuthorizationCode => {
-            let code = match &query.code {
+            let code = match &form.code {
                 Some(c) => c,
                 None => return Err(OAuth2ErrorKind::InvalidRequest),
             };
@@ -89,7 +89,7 @@ pub async fn token(
             }))
         }
         GrantType::RefreshToken => {
-            let rtoken = match &query.refresh_token {
+            let rtoken = match &form.refresh_token {
                 Some(r) => r,
                 None => return Err(OAuth2ErrorKind::InvalidRequest),
             };
@@ -105,7 +105,7 @@ pub async fn token(
             }
 
             let atoken = client
-                .new_access_token(&database, &rtoken)
+                .refresh_access_token(&database, &rtoken)
                 .await
                 .tap_err(|e| warn!("{e}"))
                 .map_err(|_| OAuth2ErrorKind::ServerError)?;

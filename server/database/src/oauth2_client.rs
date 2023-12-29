@@ -1,9 +1,9 @@
 use crate::driver::Database;
-use crate::generate_string;
-use sqlx::{FromRow, Result};
+use crate::{generate_string, impl_enum_type};
+use sqlx::{Decode, Encode, FromRow, Result};
 use std::collections::HashSet;
 use thiserror::Error;
-use time::OffsetDateTime;
+use time::{Duration, OffsetDateTime};
 
 #[derive(Debug, Clone, FromRow)]
 pub struct OAuth2Client {
@@ -21,6 +21,13 @@ pub enum OAuth2PendingAuthorization {
 }
 
 impl OAuth2PendingAuthorization {
+    pub fn ty(&self) -> &AuthorizationType {
+        match self {
+            Self::EspoUnauthorized(v) => &v.ty,
+            Self::EspoAuthorized(v) => &v.ty,
+        }
+    }
+
     pub fn id(&self) -> &String {
         match self {
             Self::EspoAuthorized(v) => &v.id,
@@ -56,6 +63,7 @@ pub struct OAuth2PendingAuthorizationUnauthorized {
     client_id: String,
     scopes: Option<String>,
     state: Option<String>,
+    ty: AuthorizationType,
 }
 
 #[derive(Debug, Clone)]
@@ -65,6 +73,7 @@ pub struct OAuth2PendingAuthorizationAuthorized {
     scopes: Option<String>,
     state: Option<String>,
     espo_user_id: String,
+    ty: AuthorizationType,
 }
 
 #[derive(FromRow)]
@@ -74,6 +83,7 @@ struct _OAuth2PendingAuthorization {
     scopes: Option<String>,
     state: Option<String>,
     espo_user_id: Option<String>,
+    ty: AuthorizationType,
 }
 
 #[derive(FromRow)]
@@ -119,6 +129,14 @@ pub enum OAuth2PendingAuthorizationSetEspoIdError {
     AlreadyAuthorized,
 }
 
+#[derive(Debug, Clone, Encode, Decode)]
+pub enum AuthorizationType {
+    AuthorizationCode,
+    Implicit,
+}
+
+impl_enum_type!(AuthorizationType);
+
 impl OAuth2Client {
     fn generate_client_id() -> String {
         generate_string(32)
@@ -137,7 +155,7 @@ impl OAuth2Client {
     }
 
     fn generate_authorization_code_expiry() -> i64 {
-        (time::OffsetDateTime::now_utc() + time::Duration::minutes(10)).unix_timestamp()
+        (OffsetDateTime::now_utc() + Duration::minutes(10)).unix_timestamp()
     }
 
     fn generate_access_token() -> String {
@@ -149,7 +167,7 @@ impl OAuth2Client {
     }
 
     fn generate_access_token_expiry() -> i64 {
-        (time::OffsetDateTime::now_utc() + time::Duration::hours(1)).unix_timestamp()
+        (OffsetDateTime::now_utc() + Duration::hours(1)).unix_timestamp()
     }
 
     pub async fn new(
@@ -207,13 +225,15 @@ impl OAuth2Client {
         driver: &Database,
         scopes: Option<String>,
         state: Option<String>,
+        ty: AuthorizationType,
     ) -> Result<OAuth2PendingAuthorization> {
         let id = Self::generate_pending_authorization_id();
-        sqlx::query("INSERT INTO oauth2_pending_authorizations (id, client_id, scopes, state) VALUES (?, ?, ?, ?)")
+        sqlx::query("INSERT INTO oauth2_pending_authorizations (id, client_id, scopes, state, ty) VALUES (?, ?, ?, ?, ?)")
             .bind(&id)
             .bind(&self.client_id)
             .bind(&scopes)
             .bind(&state)
+            .bind(&ty)
             .execute(&**driver)
             .await?;
 
@@ -223,6 +243,7 @@ impl OAuth2Client {
                 client_id: self.client_id.clone(),
                 scopes,
                 state,
+                ty,
             },
         ))
     }
@@ -266,6 +287,49 @@ impl OAuth2Client {
             scopes: pending.scopes.clone(),
             expires_at,
             espo_user_id: pending.espo_user_id,
+        })
+    }
+
+    pub async fn new_access_token(
+        &self,
+        driver: &Database,
+        authorization: OAuth2PendingAuthorization,
+    ) -> std::result::Result<AccessToken, OAuth2AuthorizationCodeCreationError> {
+        let authorization = match authorization {
+            OAuth2PendingAuthorization::EspoAuthorized(v) => v,
+            OAuth2PendingAuthorization::EspoUnauthorized(_) => {
+                return Err(OAuth2AuthorizationCodeCreationError::Unauthorized)
+            }
+        };
+
+        let atoken = Self::generate_access_token();
+        let expires_at = Self::generate_access_token_expiry();
+        let issued_at = OffsetDateTime::now_utc().unix_timestamp();
+
+        let mut tx = driver.begin().await?;
+
+        sqlx::query("INSERT INTO oauth2_access_tokens (token, client_id, expires_at, issued_at, espo_user_id, scopes) VALUES (?, ?, ?, ?, ?, ?)")
+            .bind(&atoken)
+            .bind(&self.client_id)
+            .bind(expires_at)
+            .bind(issued_at)
+            .bind(&authorization.espo_user_id)
+            .bind(&authorization.scopes)
+            .execute(&mut *tx)
+            .await?;
+
+        sqlx::query("DELETE FROM oauth2_pending_authorizations WHERE id = ? ")
+            .bind(&authorization.id)
+            .execute(&mut *tx)
+            .await?;
+
+        Ok(AccessToken {
+            token: atoken,
+            issued_at,
+            expires_at,
+            espo_user_id: authorization.espo_user_id,
+            scopes: authorization.scopes,
+            client_id: self.client_id.clone(),
         })
     }
 
@@ -327,7 +391,7 @@ impl OAuth2Client {
         ))
     }
 
-    pub async fn new_access_token(
+    pub async fn refresh_access_token(
         &self,
         driver: &Database,
         refresh_token: &RefreshToken,
@@ -445,6 +509,7 @@ impl OAuth2PendingAuthorization {
                     espo_user_id: espo_user_id.to_string(),
                     state: v.state,
                     scopes: v.scopes,
+                    ty: v.ty,
                 })
             }
             Self::EspoAuthorized(_) => unreachable!(),
@@ -474,6 +539,7 @@ impl From<_OAuth2PendingAuthorization> for OAuth2PendingAuthorization {
                 scopes: value.scopes,
                 state: value.state,
                 espo_user_id,
+                ty: value.ty,
             })
         } else {
             Self::EspoUnauthorized(OAuth2PendingAuthorizationUnauthorized {
@@ -481,6 +547,7 @@ impl From<_OAuth2PendingAuthorization> for OAuth2PendingAuthorization {
                 client_id: value.client_id,
                 scopes: value.scopes,
                 state: value.state,
+                ty: value.ty,
             })
         }
     }

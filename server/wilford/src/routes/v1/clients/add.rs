@@ -1,11 +1,11 @@
-use actix_web::web;
-use serde::Deserialize;
-use database::oauth2_client::OAuth2Client;
 use crate::routes::appdata::WDatabase;
 use crate::routes::auth::Auth;
 use crate::routes::empty::Empty;
 use crate::routes::error::{WebError, WebResult};
 use crate::routes::v1::MANAGE_SCOPE;
+use actix_web::web;
+use database::oauth2_client::OAuth2Client;
+use serde::Deserialize;
 
 #[derive(Deserialize)]
 pub struct Request {
@@ -22,7 +22,8 @@ pub async fn add(database: WDatabase, auth: Auth, payload: web::Json<Request>) -
         return Err(WebError::BadRequest);
     }
 
-    let exists=  OAuth2Client::list(&database).await?
+    let exists = OAuth2Client::list(&database)
+        .await?
         .into_iter()
         .find(|c| c.name.eq(&payload.name))
         .is_some();
@@ -35,9 +36,9 @@ pub async fn add(database: WDatabase, auth: Auth, payload: web::Json<Request>) -
         &database,
         payload.name.clone(),
         payload.redirect_uri.clone(),
-        false
-    ).await?;
+        false,
+    )
+    .await?;
 
     Ok(Empty)
-
 }

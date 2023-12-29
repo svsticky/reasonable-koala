@@ -4,9 +4,11 @@ See also: [RFC7662](https://datatracker.ietf.org/doc/html/rfc7662)
 
 >Requires [CAT](../api/index.md#cat-authorization) authorization
 
-`GET /api/oauth/introspect`
+`POST /api/oauth/introspect`
 
-## Query
+## Body
+Content-Type: `application/x-www-form-urlencoded`
+
 ```
 token = <OAuth2 Access token to introspect>
 scope = <(optional) space seperated list of required scopes>

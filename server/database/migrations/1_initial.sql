@@ -13,6 +13,7 @@ CREATE TABLE oauth2_pending_authorizations (
     scopes TEXT DEFAULT NULL,
     state TEXT DEFAULT NULL,
     espo_user_id TEXT DEFAULT NULL,
+    ty TEXT NOT NULL,
     PRIMARY KEY (id)
 );
 

@@ -18,7 +18,7 @@ impl Routable for Router {
             web::scope("/oauth")
                 .route("/authorize", web::get().to(authorize::authorize))
                 .route("/token", web::post().to(token::token))
-                .route("/introspect", web::get().to(introspect::introspect)),
+                .route("/introspect", web::post().to(introspect::introspect)),
         );
     }
 }

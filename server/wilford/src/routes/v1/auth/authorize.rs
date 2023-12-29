@@ -2,9 +2,11 @@ use crate::routes::appdata::WDatabase;
 use crate::routes::error::{WebError, WebResult};
 use crate::routes::oauth::{OAuth2AuthorizationResponse, OAuth2Error, OAuth2ErrorKind};
 use crate::routes::redirect::Redirect;
+use actix_web::cookie::time::OffsetDateTime;
 use actix_web::web;
 use database::oauth2_client::{
-    OAuth2AuthorizationCodeCreationError, OAuth2Client, OAuth2PendingAuthorization,
+    AuthorizationType, OAuth2AuthorizationCodeCreationError, OAuth2Client,
+    OAuth2PendingAuthorization,
 };
 use serde::{Deserialize, Serialize};
 
@@ -36,30 +38,69 @@ pub async fn authorize(
     }
 
     let state = pending_authorization.state().clone();
-    let authorization = client
-        .new_authorization_code(&database, pending_authorization)
-        .await
-        .map_err(|e| match e {
-            OAuth2AuthorizationCodeCreationError::Sqlx(e) => WebError::Database(e),
-            OAuth2AuthorizationCodeCreationError::Unauthorized => WebError::InvalidInternalState,
-        })?;
+    let redirect_uri = match pending_authorization.ty() {
+        AuthorizationType::AuthorizationCode => {
+            let authorization = client
+                .new_authorization_code(&database, pending_authorization)
+                .await
+                .map_err(|e| match e {
+                    OAuth2AuthorizationCodeCreationError::Sqlx(e) => WebError::Database(e),
+                    OAuth2AuthorizationCodeCreationError::Unauthorized => {
+                        WebError::InvalidInternalState
+                    }
+                })?;
 
-    #[derive(Serialize)]
-    struct RedirectQuery {
-        code: String,
-        #[serde(skip_serializing_if = "Option::is_none")]
-        state: Option<String>,
-    }
+            #[derive(Serialize)]
+            struct RedirectQuery {
+                code: String,
+                #[serde(skip_serializing_if = "Option::is_none")]
+                state: Option<String>,
+            }
 
-    let redirect_uri = format!(
-        "{}?{}",
-        client.redirect_uri,
-        serde_qs::to_string(&RedirectQuery {
-            code: authorization.code,
-            state,
-        })
-        .expect("Serializing query string"),
-    );
+            format!(
+                "{}?{}",
+                client.redirect_uri,
+                serde_qs::to_string(&RedirectQuery {
+                    code: authorization.code,
+                    state,
+                })
+                .expect("Serializing query string"),
+            )
+        }
+        AuthorizationType::Implicit => {
+            let access_token = client
+                .new_access_token(&database, pending_authorization)
+                .await
+                .map_err(|e| match e {
+                    OAuth2AuthorizationCodeCreationError::Sqlx(e) => WebError::Database(e),
+                    OAuth2AuthorizationCodeCreationError::Unauthorized => {
+                        WebError::InvalidInternalState
+                    }
+                })?;
+
+            #[derive(Serialize)]
+            struct RedirectFragment {
+                access_token: String,
+                #[serde(skip_serializing_if = "Option::is_none")]
+                state: Option<String>,
+                token_type: &'static str,
+                expires_in: i64,
+            }
+
+            format!(
+                "{}#{}",
+                client.redirect_uri,
+                serde_qs::to_string(&RedirectFragment {
+                    access_token: access_token.token,
+                    token_type: "bearer",
+                    expires_in: OffsetDateTime::now_utc().unix_timestamp()
+                        - access_token.expires_at,
+                    state,
+                })
+                .expect("Serializing query string"),
+            )
+        }
+    };
 
     Ok(OAuth2AuthorizationResponse::Ok(Redirect::new(redirect_uri)))
 }

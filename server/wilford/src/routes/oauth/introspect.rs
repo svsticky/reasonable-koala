@@ -12,7 +12,7 @@ use std::collections::HashSet;
 use thiserror::Error;
 
 #[derive(Deserialize)]
-pub struct Query {
+pub struct Form {
     token: String,
     scope: Option<String>,
 }
@@ -73,13 +73,13 @@ impl ResponseError for IntrospectError {
 pub async fn introspect(
     database: WDatabase,
     _: ConstantAccessTokenAuth,
-    query: web::Query<Query>,
+    form: web::Form<Form>,
 ) -> Result<web::Json<Response>, IntrospectError> {
-    let token = AccessToken::get_by_token(&database, &query.token)
+    let token = AccessToken::get_by_token(&database, &form.token)
         .await?
         .ok_or(IntrospectError::InvalidToken)?;
 
-    if let Some(scope) = &query.scope {
+    if let Some(scope) = &form.scope {
         let requested = HashSet::from_iter(scope.split(" ").map(|c| c.to_string()));
 
         let have = token.scopes();
