@@ -7,6 +7,7 @@ use actix_web::{web, FromRequest, HttpRequest};
 use std::future::Future;
 use std::ops::Deref;
 use std::pin::Pin;
+use tracing::warn;
 
 /// Extractor for Actix-Web.
 /// This middleware extracts the Bearer token (provided in the `Authorization` header)
@@ -43,7 +44,10 @@ impl FromRequest for WilfordAuth {
                 .await
                 .map_err(|e| match e.status() {
                     Some(StatusCode::UNAUTHORIZED) => OAuth2Error::InvalidToken,
-                    _ => OAuth2Error::Reqwest(e),
+                    _ => {
+                        warn!("{e}");
+                        OAuth2Error::Reqwest(e)
+                    },
                 })?;
 
             Ok(Self { token_info })

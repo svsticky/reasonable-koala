@@ -4,12 +4,11 @@ use crate::routes::error::{WebError, WebResult};
 use actix_web::dev::Payload;
 use actix_web::{FromRequest, HttpRequest};
 use database::constant_access_tokens::ConstantAccessToken;
-use database::oauth2_client::{AccessToken, OAuth2Client};
+use database::oauth2_client::AccessToken;
 use std::collections::HashSet;
 use std::future::Future;
 use std::pin::Pin;
-use tap::TapOptional;
-use tracing::warn;
+use actix_web::cookie::time::OffsetDateTime;
 
 #[derive(Debug, Clone)]
 pub struct Auth {
@@ -36,16 +35,16 @@ impl FromRequest for Auth {
 
         Box::pin(async move {
             let token = get_authorization_token(&req)?;
-            let client = OAuth2Client::list(&database)
-                .await?
-                .into_iter()
-                .find(|f| f.is_internal)
-                .tap_none(|| warn!("No OAuth2 client exists matching `is_internal == true`"))
-                .ok_or(WebError::InvalidInternalState)?;
 
             let token_info =
-                match AccessToken::get_with_validation(&database, &token, &client).await? {
-                    Some(v) => v,
+                match AccessToken::get_by_token(&database, &token).await? {
+                    Some(v) => {
+                        if v.expires_at < OffsetDateTime::now_utc().unix_timestamp() {
+                            return Err(WebError::Unauthorized);
+                        } else {
+                            v
+                        }
+                    },
                     None => return Err(WebError::Unauthorized),
                 };
 

@@ -12,3 +12,4 @@ reqwest = { version = "0.11.23", default-features = false, features = ["rustls-t
 serde = { version = "1.0.193", features = ["derive"] }
 serde_qs = "0.12.0"
 thiserror = "1.0.52"
+tracing = "0.1.40"

@@ -3,6 +3,7 @@ use actix_web::http::StatusCode;
 use actix_web::{HttpResponse, ResponseError};
 use serde::Serialize;
 use thiserror::Error;
+use tracing::warn;
 
 #[derive(Debug, Error)]
 pub enum OAuth2Error {
@@ -27,7 +28,10 @@ impl ResponseError for OAuth2Error {
         let error = match self {
             Self::InvalidToken => "invalid_token",
             Self::InvalidRequest => "invalid_request",
-            Self::Reqwest(_) => "server_error",
+            Self::Reqwest(e) => {
+                warn!("{e}");
+                "server_error"
+            },
         };
 
         #[derive(Serialize)]

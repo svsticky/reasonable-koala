@@ -8,7 +8,7 @@ use database::oauth2_client::OAuth2Client;
 use espocrm_rs::EspoApiClient;
 use noiseless_tracing_actix_web::NoiselessRootSpanBuilder;
 use tracing::info;
-use tracing_actix_web::TracingLogger;
+use tracing_actix_web::{RootSpanBuilder, TracingLogger};
 use tracing_subscriber::fmt::layer;
 use tracing_subscriber::layer::SubscriberExt;
 use tracing_subscriber::util::SubscriberInitExt;
@@ -84,7 +84,7 @@ async fn ensure_internal_oauth_client_exists(
 
 fn install_tracing() {
     if std::env::var("RUST_LOG").is_err() {
-        std::env::set_var("RUST_LOG", &format!("{}=INFO", env!("CARGO_PKG_NAME")));
+        std::env::set_var("RUST_LOG", "INFO");
     }
 
     tracing_subscriber::registry()
