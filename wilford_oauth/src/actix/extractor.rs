@@ -5,9 +5,9 @@ use actix_web::dev::Payload;
 use actix_web::http::StatusCode;
 use actix_web::{web, FromRequest, HttpRequest};
 use std::future::Future;
-use std::ops::Deref;
 use std::pin::Pin;
 use tracing::warn;
+use crate::user_info::UserInfo;
 
 /// Extractor for Actix-Web.
 /// This middleware extracts the Bearer token (provided in the `Authorization` header)
@@ -17,16 +17,22 @@ use tracing::warn;
 /// # Panics
 /// If no [actix_web::web::Data<WilfordConfig>] is stored in [actix_web::App::app_data].
 pub struct WilfordAuth {
-    token_info: TokenInfo,
+    pub token_info: TokenInfo,
+    pub token: String,
+    wilford_host: String,
 }
 
-impl Deref for WilfordAuth {
-    type Target = TokenInfo;
-
-    fn deref(&self) -> &Self::Target {
-        &self.token_info
+impl WilfordAuth {
+    pub fn has_scope<S: AsRef<str>>(&self, scope: S) -> bool {
+        self.token_info.has_scope(scope.as_ref())
     }
+
+    pub async fn user_info(&self) -> reqwest::Result<UserInfo> {
+        UserInfo::request_info(&self.wilford_host, &self.token).await
+    }
+
 }
+
 
 impl FromRequest for WilfordAuth {
     type Error = OAuth2Error;
@@ -50,7 +56,11 @@ impl FromRequest for WilfordAuth {
                     },
                 })?;
 
-            Ok(Self { token_info })
+            Ok(Self {
+                token_info,
+                token,
+                wilford_host: wilford.wilford.clone(),
+            })
         })
     }
 }
