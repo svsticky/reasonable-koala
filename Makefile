@@ -35,4 +35,7 @@ build-docs:
 
 .PHONY: build-ui
 build-ui:
+	# Patch for production
+	sed -i "s|createWebHistory('/')|createWebHistory('/wilford')|" ui/src/router/index.ts
+
 	docker build -t registry.mrfriendly.uk/wilford-ui ui/
