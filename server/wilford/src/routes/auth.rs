@@ -1,6 +1,7 @@
 use crate::espo::user::EspoUser;
 use crate::routes::appdata::{WDatabase, WEspo};
 use crate::routes::error::{WebError, WebResult};
+use actix_web::cookie::time::OffsetDateTime;
 use actix_web::dev::Payload;
 use actix_web::{FromRequest, HttpRequest};
 use database::constant_access_tokens::ConstantAccessToken;
@@ -8,7 +9,6 @@ use database::oauth2_client::AccessToken;
 use std::collections::HashSet;
 use std::future::Future;
 use std::pin::Pin;
-use actix_web::cookie::time::OffsetDateTime;
 
 #[derive(Debug, Clone)]
 pub struct Auth {
@@ -36,17 +36,16 @@ impl FromRequest for Auth {
         Box::pin(async move {
             let token = get_authorization_token(&req)?;
 
-            let token_info =
-                match AccessToken::get_by_token(&database, &token).await? {
-                    Some(v) => {
-                        if v.expires_at < OffsetDateTime::now_utc().unix_timestamp() {
-                            return Err(WebError::Unauthorized);
-                        } else {
-                            v
-                        }
-                    },
-                    None => return Err(WebError::Unauthorized),
-                };
+            let token_info = match AccessToken::get_by_token(&database, &token).await? {
+                Some(v) => {
+                    if v.expires_at < OffsetDateTime::now_utc().unix_timestamp() {
+                        return Err(WebError::Unauthorized);
+                    } else {
+                        v
+                    }
+                }
+                None => return Err(WebError::Unauthorized),
+            };
 
             let espo_user = EspoUser::get_by_id(&espo_client, &token_info.espo_user_id)
                 .await
