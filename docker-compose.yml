@@ -2,6 +2,8 @@ version: '3.2'
 services:
   mariadb-wilford:
     image: mariadb
+    volumes:
+      - "./tmp/mariadb-wilford:/var/lib/mysql"
     environment:
       - "MARIADB_ROOT_PASSWORD=123"
       - "MARIADB_USER=wilford"
@@ -10,6 +12,8 @@ services:
 
   mariadb-espocrm:
     image: mariadb
+    volumes:
+    - "./tmp/mariadb-espocrm:/var/lib/mysql"
     environment:
       - "MARIADB_ROOT_PASSWORD=123"
       - "MARIADB_USER=espocrm"
