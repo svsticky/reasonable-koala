@@ -33,3 +33,6 @@ After starting, you should configure an API-client in EspoCRM:
 11. Set `Authentication method` to `HMAC` and select `Save`
 12. Copy the `API Key` and `Secret Key` to `config.json`
 13. Hit Ctrl+C and run `docker compose up` again.
+
+# License
+MIT or Apache-2.0, at your option
