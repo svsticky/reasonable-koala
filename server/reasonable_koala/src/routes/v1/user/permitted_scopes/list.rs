@@ -13,8 +13,8 @@ pub struct Response {
 
 #[derive(Deserialize)]
 pub struct Query {
-    /// Espo user ID
-    user: String,
+    /// User ID
+    user: Option<String>,
 }
 
 pub async fn list(
@@ -22,11 +22,19 @@ pub async fn list(
     auth: Auth,
     query: web::Query<Query>,
 ) -> WebResult<web::Json<Response>> {
-    if !auth.has_scope(MANAGE_SCOPE) {
-        return Err(WebError::Forbidden);
-    }
+    // Admin privileges are only required if the query is not for the current user
+    let user_id = match &query.user {
+        Some(user_id) => {
+            if !auth.has_scope(MANAGE_SCOPE) && user_id.ne(&auth.user_id) {
+                return Err(WebError::Forbidden);
+            } else {
+                user_id
+            }
+        }
+        None => &auth.user_id,
+    };
 
-    let user = User::get_by_id(&database, &query.user)
+    let user = User::get_by_id(&database, user_id)
         .await?
         .ok_or(WebError::NotFound)?;
     let scopes = user.list_permitted_scopes(&database).await?;

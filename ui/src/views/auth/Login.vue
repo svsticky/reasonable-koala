@@ -13,7 +13,7 @@
             <v-card-text v-if="!hideAll">
                 <v-img
                     height="200"
-                    src="https://public.svsticky.nl/logos/logo_outline_kleur.svg"
+                    src="https://public.svsticky.nl/logos/logo_outline_kleur.png"
                     contain
                 ></v-img>
                 <div v-if="enterUsernamePassword">
@@ -43,6 +43,9 @@
                 </div>
             </v-card-text>
             <v-card-actions v-if="!hideAll">
+                <v-btn to="/auth/register">
+                    Register
+                </v-btn>
                 <v-spacer></v-spacer>
                 <v-btn
                     :loading="loading"
@@ -116,7 +119,7 @@ async function login() {
             }
 
             if(v.status) {
-                await router.push(`/authorize?authorization=${route.query['authorization']}`);
+                await router.push(`/auth/authorize?authorization=${route.query['authorization']}`);
                 return;
             }
 

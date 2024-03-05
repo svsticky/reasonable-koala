@@ -5,10 +5,10 @@ use actix_web::dev::Payload;
 use actix_web::{FromRequest, HttpRequest};
 use database::constant_access_tokens::ConstantAccessToken;
 use database::oauth2_client::AccessToken;
+use database::user::User;
 use std::collections::HashSet;
 use std::future::Future;
 use std::pin::Pin;
-use database::user::User;
 
 #[derive(Debug, Clone)]
 pub struct Auth {
@@ -44,7 +44,8 @@ impl FromRequest for Auth {
                 None => return Err(WebError::Unauthorized),
             };
 
-            let user = User::get_by_id(&database, &token_info.user_id).await?
+            let user = User::get_by_id(&database, &token_info.user_id)
+                .await?
                 .ok_or(WebError::Unauthorized)?;
 
             Ok(Self {

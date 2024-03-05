@@ -2,11 +2,11 @@ use rand::Rng;
 
 pub mod constant_access_tokens;
 pub mod driver;
+mod hash;
 pub mod oauth2_client;
 pub mod user;
-mod hash;
 
-fn generate_string(len: usize) -> String {
+pub fn generate_string(len: usize) -> String {
     rand::thread_rng()
         .sample_iter(rand::distributions::Alphanumeric)
         .take(len)

@@ -92,7 +92,7 @@ let isCreateClientDialogEnabled = ref(false);
 
 onMounted(async () => {
     const tokenInfo = await Token.getCurrentInfo()
-    isManager.value = tokenInfo.scopes.includes('wilford.manage');
+    isManager.value = tokenInfo.scopes.includes('koala.manage');
 
     if(!isManager.value) {
         const client = await ClientInfo.getInternal();

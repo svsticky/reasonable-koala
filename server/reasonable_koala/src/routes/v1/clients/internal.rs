@@ -8,7 +8,6 @@ use serde::Serialize;
 pub struct Response {
     name: String,
     client_id: String,
-    client_secret: String,
     redirect_uri: String,
 }
 
@@ -22,7 +21,6 @@ pub async fn internal(database: WDatabase) -> WebResult<web::Json<Response>> {
     Ok(web::Json(Response {
         name: client.name,
         client_id: client.client_id,
-        client_secret: client.client_secret,
         redirect_uri: client.redirect_uri,
     }))
 }

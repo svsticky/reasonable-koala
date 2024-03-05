@@ -504,16 +504,14 @@ impl OAuth2PendingAuthorization {
             .await?;
 
         let new_self = match self {
-            Self::Unauthorized(v) => {
-                Self::Authorized(OAuth2PendingAuthorizationAuthorized {
-                    id: v.id,
-                    client_id: v.client_id,
-                    user_id: user_id.to_string(),
-                    state: v.state,
-                    scopes: v.scopes,
-                    ty: v.ty,
-                })
-            }
+            Self::Unauthorized(v) => Self::Authorized(OAuth2PendingAuthorizationAuthorized {
+                id: v.id,
+                client_id: v.client_id,
+                user_id: user_id.to_string(),
+                state: v.state,
+                scopes: v.scopes,
+                ty: v.ty,
+            }),
             Self::Authorized(_) => unreachable!(),
         };
 

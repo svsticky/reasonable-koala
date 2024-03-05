@@ -1,30 +1,56 @@
 <template>
-    <v-app-bar flat>
+    <v-app-bar elevation="1">
         <v-img
             class="mx-2 mr-0"
             contain
             max-height="48"
             max-width="48"
-            src="https://public.svsticky.nl/logos/hoofd_outline_kleur.svg"
+            src="https://public.svsticky.nl/logos/hoofd_outline_kleur.png"
         ></v-img>
-        <v-app-bar-title class="font-wilford">
-            Koala
+        <v-app-bar-title class="page-title">
+            <a
+                target="_blank"
+                class="nostyle"
+                href="https://github.com/svsticky/reasonable-koala">
+                Koala
+            </a>
         </v-app-bar-title>
+
+        <v-spacer></v-spacer>
+
+        <v-tooltip text="Sign out">
+            <template v-slot:activator="{ props }">
+                <v-btn
+                    v-bind="props"
+                    density="compact"
+                    :slim="true"
+                    @click="signout">
+                    <v-icon>mdi-exit-to-app</v-icon>
+                </v-btn>
+            </template>
+        </v-tooltip>
     </v-app-bar>
 </template>
 
-<style scoped>
-@import url('https://fonts.googleapis.com/css2?family=Tinos&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Kode+Mono:wght@400..700&display=swap')
-
-.font-wilford {
-    font-family: "Kode Mono", monospace;
-    font-optical-sizing: auto;
-    font-weight: 400;
-    font-style: normal;
-}
+<style scoped lang="scss">
+@import '@/styles/appbar';
 </style>
 
-<script lang="ts" setup>
-//
+<script lang="ts">
+
+import {defineComponent} from "vue";
+
+export default defineComponent({
+    methods: {
+        signout() {
+            window.localStorage.clear();
+            if(this.$route.fullPath != "/") {
+                this.$router.replace("/");
+                console.log("a");
+            } else {
+                window.location.reload();
+            }
+        }
+    }
+})
 </script>

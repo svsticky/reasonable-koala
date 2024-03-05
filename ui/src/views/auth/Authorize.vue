@@ -1,6 +1,6 @@
 <template>
     <v-container>
-        <v-card>
+        <v-card max-width="600" class="mx-auto">
             <v-card-title>Authorize</v-card-title>
             <v-card-subtitle>Grant authorization</v-card-subtitle>
 

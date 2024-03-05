@@ -1,6 +1,6 @@
 <template>
     <v-container>
-        <v-card>
+        <v-card max-width="900" class="mx-auto">
             <v-card-title>Home</v-card-title>
 
             <div v-if="loading">
@@ -89,7 +89,7 @@ onMounted(async () => {
 
 async function getTokenInfo() {
     const currentToken = await Token.getCurrentInfo();
-    wilfordManageScope.value = currentToken.scopes.includes('wilford.manage');
+    wilfordManageScope.value = currentToken.scopes.includes('koala.manage');
 }
 
 async function getUserInfo() {

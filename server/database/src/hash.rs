@@ -33,7 +33,8 @@ pub fn hash(input: &str, salt: &str, pepper: &str) -> Result<String, bcrypt::Bcr
 
     let engine = base64::prelude::BASE64_STANDARD;
     let hash = engine.encode(hasher.finalize());
-    let bcrypt = bcrypt::hash_with_salt(hash, BCRYPT_COST, salt_bytes_arr)?.format_for_version(bcrypt::Version::TwoB);
+    let bcrypt = bcrypt::hash_with_salt(hash, BCRYPT_COST, salt_bytes_arr)?
+        .format_for_version(bcrypt::Version::TwoB);
 
     Ok(bcrypt)
 }

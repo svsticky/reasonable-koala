@@ -5,6 +5,7 @@ use database::oauth2_client::OAuth2PendingAuthorization;
 use database::user::User;
 use serde::{Deserialize, Serialize};
 use std::collections::HashSet;
+use tracing::instrument;
 
 #[derive(Deserialize)]
 pub struct Request {
@@ -22,8 +23,11 @@ pub struct Response {
 }
 
 /// Serde helper function
-fn is_false(b: &bool) -> bool { !b }
+fn is_false(b: &bool) -> bool {
+    !b
+}
 
+#[instrument(skip_all)]
 pub async fn login(
     database: WDatabase,
     config: WConfig,
@@ -35,11 +39,15 @@ pub async fn login(
         .ok_or(WebError::NotFound)?;
 
     // Fetch the associated user
-    let mut user = User::get_by_email(&database, &payload.username).await?
+    let mut user = User::get_by_email(&database, &payload.username)
+        .await?
         .ok_or(WebError::Unauthorized)?;
 
     // Validate password
-    if !user.check_password(&database, &payload.password, &config.password_pepper).await? {
+    if !user
+        .check_password(&database, &payload.password, &config.password_pepper)
+        .await?
+    {
         return Err(WebError::Unauthorized);
     }
 
@@ -59,8 +67,7 @@ pub async fn login(
         .unwrap_or_default();
 
     // Scopes allowed for the user
-    let permitted_scopes =
-        HashSet::from_iter(user.list_permitted_scopes(&database).await?);
+    let permitted_scopes = HashSet::from_iter(user.list_permitted_scopes(&database).await?);
 
     // We always allow OIDC scopes
     let oidc_scopes = oidc_scopes();
@@ -74,7 +81,7 @@ pub async fn login(
         .difference(&allowed_scopes)
         .collect::<HashSet<_>>();
 
-    if !disallowed_scopes.is_empty() {
+    if !disallowed_scopes.is_empty() && !user.is_admin {
         return Err(WebError::Forbidden);
     }
 

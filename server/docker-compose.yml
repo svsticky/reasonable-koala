@@ -1,0 +1,13 @@
+version: "3.2"
+services:
+  mariadb:
+    image: mariadb
+    volumes:
+      - "./tmp/mariadb:/var/lib/mysql"
+    environment:
+      - "MARIADB_ROOT_PASSWORD=reasonable-koala"
+      - "MARIADB_USER=reasonable-koala"
+      - "MARIADB_PASSWORD=reasonable-koala"
+      - "MARIADB_DATABASE=reasonable-koala"
+    ports:
+      - "3306:3306"

@@ -7,7 +7,7 @@ mod cat;
 mod clients;
 mod user;
 
-pub const MANAGE_SCOPE: &str = "wilford.manage";
+pub const MANAGE_SCOPE: &str = "koala.manage";
 
 pub struct Router;
 

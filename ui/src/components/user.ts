@@ -3,18 +3,21 @@ import {ClientInfo} from "@/components/clients";
 
 interface _User {
     name: string,
-    espo_user_id: string,
+    email: string,
+    user_id: string,
     is_admin: boolean,
 }
 
 export class User {
     name: string;
-    espoUserId: string;
+    userId: string;
+    email: string;
     isAdmin: boolean;
 
-    constructor(name: string, espoUserId: string, isAdmin: boolean) {
+    constructor(name: string, userId: string, email: string, isAdmin: boolean) {
         this.name = name;
-        this.espoUserId = espoUserId;
+        this.userId = userId;
+        this.email = email;
         this.isAdmin = isAdmin;
     }
 
@@ -31,7 +34,7 @@ export class User {
         }
 
         const j: _User = await r.json();
-        return new User(j.name, j.espo_user_id, j.is_admin);
+        return new User(j.name, j.user_id, j.email, j.is_admin);
     }
 
     static async list(): Promise<User[]> {
@@ -46,11 +49,11 @@ export class User {
         }
 
         const j: Response = await r.json();
-        return j.users.map(u => new User(u.name, u.espo_user_id, u.is_admin))
+        return j.users.map(u => new User(u.name, u.user_id, u.email, u.is_admin))
     }
 
     async listPermittedScopes(): Promise<string[]> {
-        const r = await fetch(`${server}/api/v1/user/permitted-scopes/list?user=${this.espoUserId}`, {
+        const r = await fetch(`${server}/api/v1/user/permitted-scopes/list?user=${this.userId}`, {
             headers: {
                 'Authorization': `Bearer ${window.localStorage.getItem('access_token')}`
             }
@@ -68,7 +71,7 @@ export class User {
         const r = await fetch(`${server}/api/v1/user/permitted-scopes/remove`, {
             method: 'DELETE',
             body: JSON.stringify({
-                from: this.espoUserId,
+                from: this.userId,
                 scope: scope,
             }),
             headers: {
@@ -82,7 +85,7 @@ export class User {
         await fetch(`${server}/api/v1/user/permitted-scopes/add`, {
             method: 'POST',
             body: JSON.stringify({
-                to: this.espoUserId,
+                to: this.userId,
                 scope: scope,
             }),
             headers: {

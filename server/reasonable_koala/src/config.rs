@@ -20,6 +20,7 @@ pub struct Config {
 #[derive(Debug, Deserialize)]
 pub struct HttpConfig {
     pub ui_login_path: String,
+    pub port: u16,
 }
 
 #[derive(Debug, Deserialize)]

@@ -13,6 +13,8 @@ pub struct Query {
     redirect_uri: String,
     scope: Option<String>,
     state: Option<String>,
+    #[serde(default)]
+    all_scopes: bool,
 }
 
 #[derive(Debug, Deserialize)]

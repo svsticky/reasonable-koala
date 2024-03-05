@@ -4,9 +4,11 @@ use actix_route_config::Routable;
 use actix_web::{web, App, HttpServer};
 use color_eyre::Result;
 use database::driver::Database;
+use database::generate_string;
 use database::oauth2_client::OAuth2Client;
+use database::user::User;
 use noiseless_tracing_actix_web::NoiselessRootSpanBuilder;
-use tracing::info;
+use tracing::{info, warn};
 use tracing_actix_web::TracingLogger;
 use tracing_subscriber::fmt::layer;
 use tracing_subscriber::layer::SubscriberExt;
@@ -30,9 +32,31 @@ async fn main() -> Result<()> {
     )
     .await?;
 
+    let users = User::list(&database).await?;
+    if users.is_empty() {
+        info!("No users exist. Creating default admin user.");
+        let password = generate_string(32);
+        User::new(
+            &database,
+            "Default admin".to_string(),
+            "dev@svsticky.nl".to_string(),
+            true,
+            Some(password.clone()),
+            None,
+            &config.password_pepper,
+        )
+        .await?;
+
+        info!("Created new user");
+        info!("Username: dev@svsticky.nl");
+        info!("Password: {password}");
+        warn!("This user should be deleted once a new admin user has been created!");
+    }
+
     ensure_internal_oauth_client_exists(&database, &config.default_client).await?;
 
     let w_database = web::Data::new(database);
+    let port = config.http.port;
     let w_config = web::Data::new(config);
 
     HttpServer::new(move || {
@@ -43,7 +67,7 @@ async fn main() -> Result<()> {
             .app_data(w_config.clone())
             .configure(routes::Router::configure)
     })
-    .bind("0.0.0.0:8080")?
+    .bind(format!("0.0.0.0:{port}"))?
     .run()
     .await?;
 
@@ -61,7 +85,7 @@ async fn ensure_internal_oauth_client_exists(
 
     let client = OAuth2Client::new(
         driver,
-        "Wilford".to_string(),
+        "Reasonable Koala".to_string(),
         config.redirect_uri.clone(),
         true,
     )
