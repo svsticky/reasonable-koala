@@ -27,7 +27,7 @@ export class ClientInfo {
     }
 
     getAuthorizationRedirect(manageScopes: boolean = false): string {
-        const scopesParam = manageScopes ? `&scope=wilford.manage` : "";
+        const scopesParam = manageScopes ? `&scope=koala.manage` : "";
         return `${server}/api/oauth/authorize?client_id=${this.clientId}&response_type=token${scopesParam}&redirect_uri=${this.redirectUri}`
     }
 

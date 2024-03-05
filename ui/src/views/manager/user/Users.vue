@@ -16,7 +16,7 @@
                 ></v-btn>
                 Users
             </v-card-title>
-            <v-card-subtitle>All users who have logged in via Wilford</v-card-subtitle>
+            <v-card-subtitle>All users</v-card-subtitle>
             <v-card-text v-if="isManager">
                 <v-data-table
                     :items="users"
@@ -77,7 +77,7 @@ const headers: { title: string, value: string }[] = [
         value: "name"
     },
     {
-        title: "EspoCRM Admin",
+        title: "Admin",
         value: "isAdmin"
     },
     {
@@ -88,7 +88,7 @@ const headers: { title: string, value: string }[] = [
 
 onMounted(async () => {
     const tokenInfo = await Token.getCurrentInfo()
-    isManager.value = tokenInfo.scopes.includes('wilford.manage');
+    isManager.value = tokenInfo.scopes.includes('koala.manage');
 
     if(!isManager.value) {
         const client = await ClientInfo.getInternal();

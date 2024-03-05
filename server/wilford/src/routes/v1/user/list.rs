@@ -13,7 +13,7 @@ pub struct Response {
 #[derive(Serialize)]
 pub struct User {
     name: String,
-    espo_user_id: String,
+    user_id: String,
     is_admin: bool,
 }
 
@@ -27,8 +27,8 @@ pub async fn list(database: WDatabase, auth: Auth) -> WebResult<web::Json<Respon
         .into_iter()
         .map(|u| User {
             name: u.name,
-            espo_user_id: u.espo_user_id,
-            is_admin: u.is_espo_admin,
+            user_id: u.id,
+            is_admin: u.is_admin,
         })
         .collect::<Vec<_>>();
 

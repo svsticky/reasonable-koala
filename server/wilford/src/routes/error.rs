@@ -18,8 +18,8 @@ pub enum WebError {
     Forbidden,
     #[error("{0}")]
     Database(#[from] database::driver::Error),
-    #[error("EspoCRM error: {0}")]
-    Espo(reqwest::Error),
+    #[error("{0}")]
+    DatabaseUser(#[from] database::user::UserError),
 }
 
 impl ResponseError for WebError {
@@ -31,7 +31,7 @@ impl ResponseError for WebError {
             Self::Forbidden => StatusCode::FORBIDDEN,
             Self::InvalidInternalState => StatusCode::INTERNAL_SERVER_ERROR,
             Self::Database(_) => StatusCode::INTERNAL_SERVER_ERROR,
-            Self::Espo(_) => StatusCode::BAD_GATEWAY,
+            Self::DatabaseUser(_) => StatusCode::INTERNAL_SERVER_ERROR,
         }
     }
 }

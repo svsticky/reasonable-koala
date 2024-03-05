@@ -20,7 +20,7 @@
 
         <v-card v-else>
             <v-card-title>Logged in</v-card-title>
-            <v-card-subtitle v-if="!errorBanner">Welcome to Wilford.</v-card-subtitle>
+            <v-card-subtitle v-if="!errorBanner">Welcome to Koala.</v-card-subtitle>
 
             <v-card-actions>
 

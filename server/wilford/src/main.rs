@@ -5,17 +5,15 @@ use actix_web::{web, App, HttpServer};
 use color_eyre::Result;
 use database::driver::Database;
 use database::oauth2_client::OAuth2Client;
-use espocrm_rs::EspoApiClient;
 use noiseless_tracing_actix_web::NoiselessRootSpanBuilder;
 use tracing::info;
-use tracing_actix_web::{RootSpanBuilder, TracingLogger};
+use tracing_actix_web::TracingLogger;
 use tracing_subscriber::fmt::layer;
 use tracing_subscriber::layer::SubscriberExt;
 use tracing_subscriber::util::SubscriberInitExt;
 use tracing_subscriber::EnvFilter;
 
 mod config;
-mod espo;
 mod routes;
 
 #[tokio::main]
@@ -31,16 +29,11 @@ async fn main() -> Result<()> {
         &config.database.database,
     )
     .await?;
-    let espo_client = EspoApiClient::new(&config.espo.host)
-        .set_api_key(&config.espo.api_key)
-        .set_secret_key(&config.espo.secret_key)
-        .build();
 
     ensure_internal_oauth_client_exists(&database, &config.default_client).await?;
 
     let w_database = web::Data::new(database);
     let w_config = web::Data::new(config);
-    let w_espo = web::Data::new(espo_client);
 
     HttpServer::new(move || {
         App::new()
@@ -48,7 +41,6 @@ async fn main() -> Result<()> {
             .wrap(TracingLogger::<NoiselessRootSpanBuilder>::new())
             .app_data(w_database.clone())
             .app_data(w_config.clone())
-            .app_data(w_espo.clone())
             .configure(routes::Router::configure)
     })
     .bind("0.0.0.0:8080")?

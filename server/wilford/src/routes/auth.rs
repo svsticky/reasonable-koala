@@ -1,5 +1,4 @@
-use crate::espo::user::EspoUser;
-use crate::routes::appdata::{WDatabase, WEspo};
+use crate::routes::appdata::WDatabase;
 use crate::routes::error::{WebError, WebResult};
 use actix_web::cookie::time::OffsetDateTime;
 use actix_web::dev::Payload;
@@ -9,11 +8,13 @@ use database::oauth2_client::AccessToken;
 use std::collections::HashSet;
 use std::future::Future;
 use std::pin::Pin;
+use database::user::User;
 
 #[derive(Debug, Clone)]
 pub struct Auth {
-    pub espo_user_id: String,
+    pub user_id: String,
     pub name: String,
+    pub email: String,
     pub is_admin: bool,
     token: AccessToken,
 }
@@ -27,10 +28,6 @@ impl FromRequest for Auth {
         let database = req
             .app_data::<WDatabase>()
             .expect("Getting AppData for type WDatabase")
-            .clone();
-        let espo_client = req
-            .app_data::<WEspo>()
-            .expect("Getting AppData for type WEspo")
             .clone();
 
         Box::pin(async move {
@@ -47,14 +44,14 @@ impl FromRequest for Auth {
                 None => return Err(WebError::Unauthorized),
             };
 
-            let espo_user = EspoUser::get_by_id(&espo_client, &token_info.espo_user_id)
-                .await
-                .map_err(|e| WebError::Espo(e))?;
+            let user = User::get_by_id(&database, &token_info.user_id).await?
+                .ok_or(WebError::Unauthorized)?;
 
             Ok(Self {
-                espo_user_id: espo_user.id,
-                name: espo_user.name,
-                is_admin: espo_user.user_type.eq("admin"),
+                user_id: user.id,
+                name: user.name,
+                email: user.email,
+                is_admin: user.is_admin,
                 token: token_info,
             })
         })

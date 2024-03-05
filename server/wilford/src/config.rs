@@ -13,20 +13,13 @@ struct EnvConfig {
 pub struct Config {
     pub http: HttpConfig,
     pub database: DatabaseConfig,
-    pub espo: EspoConfig,
     pub default_client: DefaultClientConfig,
+    pub password_pepper: String,
 }
 
 #[derive(Debug, Deserialize)]
 pub struct HttpConfig {
     pub ui_login_path: String,
-}
-
-#[derive(Debug, Deserialize)]
-pub struct EspoConfig {
-    pub host: String,
-    pub api_key: String,
-    pub secret_key: String,
 }
 
 #[derive(Debug, Deserialize)]

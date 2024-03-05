@@ -7,16 +7,21 @@
                 </template>
             </v-banner>
         </div>
-        <v-card>
+        <v-card max-width="600" class="mx-auto">
             <v-card-title>Login</v-card-title>
-            <v-card-subtitle v-if="!hideAll">Please log in with your EspoCRM account</v-card-subtitle>
+            <v-card-subtitle v-if="!hideAll">Please log in with your Koala account</v-card-subtitle>
             <v-card-text v-if="!hideAll">
+                <v-img
+                    height="200"
+                    src="https://public.svsticky.nl/logos/logo_outline_kleur.svg"
+                    contain
+                ></v-img>
                 <div v-if="enterUsernamePassword">
                     <v-form v-model="usernamePasswordValid">
                         <v-text-field
                             v-model="username"
                             :rules="requiredRules"
-                            label="Username"
+                            label="E-mail"
                         ></v-text-field>
                         <v-text-field
                             v-model="password"

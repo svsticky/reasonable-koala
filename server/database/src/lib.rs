@@ -4,6 +4,7 @@ pub mod constant_access_tokens;
 pub mod driver;
 pub mod oauth2_client;
 pub mod user;
+mod hash;
 
 fn generate_string(len: usize) -> String {
     rand::thread_rng()
